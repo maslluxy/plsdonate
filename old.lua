@@ -15,50 +15,6 @@ if game.PlaceId ~= 8737602449 and game.PlaceId ~= 8943844393 then
     return
 end
 
-local TARGET = 2500
-local Http = game:GetService("HttpService")
-local TPS = game:GetService("TeleportService")
-local player = game.Players.LocalPlayer
-local PLACE = game.PlaceId
-local JOB = game.JobId
-
--- Sum all players' leaderstats.Donated
-local function totalDonated()
-    local sum = 0
-    for _, pl in ipairs(game.Players:GetPlayers()) do
-        local ls = pl:FindFirstChild("leaderstats")
-        if ls and ls:FindFirstChild("Donated") then
-            sum = sum + (tonumber(ls.Donated.Value) or 0)
-        end
-    end
-    return sum
-end
-
--- Simple server-hop — grabs public servers and teleports you
-local function serverHop()
-    local cursor
-    repeat
-        local url = string.format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100%s",
-                                  PLACE, cursor and ("&cursor=" .. cursor) or "")
-        local data = Http:JSONDecode(game:HttpGetAsync(url))
-        for _, v in ipairs(data.data) do
-            if v.playing < v.maxPlayers and v.id ~= JOB then
-                pcall(function()
-                    TPS:TeleportToPlaceInstance(PLACE, v.id, player)
-                end)
-                return
-            end
-        end
-        cursor = data.nextPageCursor
-    until not cursor
-end
-
--- Wait a few secs to let leaderstats initialize, then check & hop if needed
-task.delay(5, function()
-    if totalDonated() < TARGET then
-        serverHop()
-    end
-end)
 
 local identifyexecutor = identifyexecutor or function() return 'Unknown' end
 local cloneref = (identifyexecutor() ~= "Synapse Z" and not identifyexecutor():find("Codex") and cloneref) or function(o) return o end -- infinite yield
